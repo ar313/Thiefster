@@ -2,6 +2,9 @@
 
 #include "Cop.h"
 #include "UnrealMathUtility.h"
+#include "TimerManager.h"
+#include "Engine/World.h"
+#include "Engine/Public/DelayAction.h"
 // Sets default values
 ACop::ACop()
 {
@@ -23,50 +26,84 @@ void ACop::Tick(float DeltaTime)
 {
 	float boundary = 400;
 	Super::Tick(DeltaTime);
-	Patrol(boundary, DeltaTime);
-	SetActorTickInterval(0.0f);
 	
+	
+	if(!IsRotating)Patrol(boundary, DeltaTime);
+	
+	
+	if (IsRotating) {
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDelayed;
+		TimerDelayed.BindUFunction(this, FName("Rotate"),180, DeltaTime);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,TimerDelayed,0.3f, false);
+		
+	}
 
 }
 void ACop::Patrol(float boundary, float DeltaTime)
 {
-	FTimerHandle WaitBeforeTurn;
+	
+	FTimerManager WaitBeforeTurn;
 	FVector NewLocation = GetActorLocation();
 	if (Right)
 	{
-		NewLocation.X += (DeltaTime * 40.f);
+		NewLocation.X += (DeltaTime * 40.f); //todo set speed
 		SetActorLocation(NewLocation);
 		if (NewLocation.X > boundary)
 		{
 			Right = false;
+			IsRotating = true;
+			
 
-			FRotator ActorRotation = this->GetActorRotation();
-			ActorRotation.Yaw += 180;
-			this->SetActorRotation(ActorRotation);
-			float RandomWaitTime = FMath::RandRange(5, 30);
-			UE_LOG(LogTemp, Warning, TEXT("MyCharacter's FName is %f"),RandomWaitTime);
-			SetActorTickInterval(RandomWaitTime);
 		}
 	}
 
 	else if (!Right)
 	{
 		
-		NewLocation.X -= (DeltaTime * 40.f);
+		
+		NewLocation.X -= (DeltaTime * 40.f);   //todo set speed 
 		SetActorLocation(NewLocation);
 		if (NewLocation.X < -boundary)
 		{
 			Right = true;
-
-
-			FRotator ActorRotation = this->GetActorRotation();
-			ActorRotation.Yaw -= 180;
-			this->SetActorRotation(ActorRotation);
-			float RandomWaitTime = FMath::RandRange(5, 30);
-			UE_LOG(LogTemp, Warning, TEXT("MyCharacter's mov is %f"), RandomWaitTime);
-			SetActorTickInterval(RandomWaitTime);
+			IsRotating = true;
+			
 			
 		}
 	}
 
+}
+
+void ACop::Rotate(float RotateDirection,float DeltaTime) {
+	
+		FRotator ActorRotation = this->GetActorRotation();
+		if (Right)
+		{
+			ActorRotation.Yaw = RotateDirection-180.0f;
+			this->SetActorRotation(FMath::RInterpConstantTo(GetActorRotation(), ActorRotation, DeltaTime*6, 5.f)); // todo set rotationspeed
+		}
+		if (!Right)
+		{
+			ActorRotation.Yaw = RotateDirection;
+			this->SetActorRotation(FMath::RInterpConstantTo(GetActorRotation(), ActorRotation,DeltaTime*6,5.f));  // todo set rotationspeed
+			
+		}
+		
+		if ((FMath::Abs(FMath::RoundHalfFromZero(GetActorRotation().Yaw))) == (FMath::Abs(FMath::RoundHalfFromZero(ActorRotation.Yaw))))   
+		{
+			FRotator Normalise = this->GetActorRotation();
+			Normalise.Yaw = FMath::RoundHalfToEven(Normalise.Yaw);
+			this->SetActorRotation(Normalise);
+			IsRotating = false;
+		}
+		UE_LOG(LogTemp, Log, TEXT("get Actor Rotation %f"), GetActorRotation().Yaw);
+		UE_LOG(LogTemp, Log, TEXT("set Actor Rotation %f"), ActorRotation.Yaw);
+		//if ((FMath::RoundHalfToZero(ActorRotation.Yaw) == 0) || FMath::RoundHalfFromZero(ActorRotation.Yaw)>=359)
+		//{
+		//	ActorRotation.Yaw = 0.001f;
+			//this->SetActorRotation(ActorRotation);
+	//	}
+		//IsRotating = false;
+	
 }

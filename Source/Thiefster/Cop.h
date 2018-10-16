@@ -15,6 +15,8 @@ public:
 	// Sets default values for this actor's properties
 	ACop();
 	bool Right = true;
+	bool IsRotating = false;
+	FTimerHandle WaitForTime;
 
 protected:
 	// Called when the game starts or when spawned
@@ -23,9 +25,11 @@ protected:
 	//UStaticMeshComponent *body;
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime);
+	UFUNCTION()
+	void Rotate(float RotationDirection,float DeltaTime);
 private:
+	
 	void Patrol(float boundary,float DeltaTime);
 	
-
 };
