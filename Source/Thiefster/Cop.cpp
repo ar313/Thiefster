@@ -4,7 +4,7 @@
 #include "UnrealMathUtility.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
-#include "Engine/Public/DelayAction.h"
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h "
 // Sets default values
 ACop::ACop()
 {
@@ -17,30 +17,52 @@ ACop::ACop()
 void ACop::BeginPlay()
 {
 	Super::BeginPlay();
-	//UPROPERTY(EditAnywhere)
-	//body=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere"));
+	UPROPERTY(EditAnywhere)
+	//body=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
+	boundary = 400.0f;
+	MinStep = 100.0f;
 }
 
 // Called every frame
 void ACop::Tick(float DeltaTime)
 {
-	float boundary = 400;
 	Super::Tick(DeltaTime);
 	
 	
-	if(!IsRotating)Patrol(boundary, DeltaTime);
-	
-	
-	if (IsRotating) {
+	if (!IsRotating)
+	{
+		if (first) {
+			GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+			WaitTime = FMath::FRandRange(0.4f, 7.0f);
+			first = false;
+
+		}
 		FTimerHandle TimerHandle;
 		FTimerDelegate TimerDelayed;
-		TimerDelayed.BindUFunction(this, FName("Rotate"),180, DeltaTime);
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle,TimerDelayed,0.3f, false);
+		TimerDelayed.BindUFunction(this, FName("Patrol"), DeltaTime);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelayed, WaitTime, false);
+	//	Patrol(DeltaTime);
+
+		
+	}
+	
+	if (IsRotating) {
+		
+		if (first) {
+			GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+			 WaitTime = FMath::FRandRange(0.4f, 7.0f); 
+			first = false;
+			
+		}
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDelayed;
+		TimerDelayed.BindUFunction(this, FName("Rotate"),180.0f, DeltaTime);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,TimerDelayed,WaitTime, false);
 		
 	}
 
 }
-void ACop::Patrol(float boundary, float DeltaTime)
+void ACop::Patrol(float DeltaTime)
 {
 	
 	FTimerManager WaitBeforeTurn;
@@ -51,10 +73,21 @@ void ACop::Patrol(float boundary, float DeltaTime)
 		SetActorLocation(NewLocation);
 		if (NewLocation.X > boundary)
 		{
-			Right = false;
-			IsRotating = true;
+			float oldboundary=boundary;
+			boundary = MinStep+FMath::FRandRange(-500.0f, +300.0f);
+			if (boundary > oldboundary) 
+			{
+				IsRotating = false;
+			}
 			
-
+			else if (boundary < oldboundary) {
+				IsRotating = true;
+				Right = false;
+			}
+			
+			first = true;
+			UE_LOG(LogTemp, Log, TEXT("Boundary Right %f"), boundary);
+			
 		}
 	}
 
@@ -64,12 +97,22 @@ void ACop::Patrol(float boundary, float DeltaTime)
 		
 		NewLocation.X -= (DeltaTime * 40.f);   //todo set speed 
 		SetActorLocation(NewLocation);
-		if (NewLocation.X < -boundary)
+		if (NewLocation.X < boundary)
 		{
-			Right = true;
-			IsRotating = true;
+			float oldboundary = boundary;
+			boundary =MinStep+ FMath::FRandRange(-500.0f, +300.0f);
+			if (boundary < oldboundary)
+			{
+				IsRotating = false;
+			}
+			else if (boundary > oldboundary) {
+				Right = true;
+				IsRotating = true;
+			}
 			
 			
+			first = true;
+			UE_LOG(LogTemp, Log, TEXT("Boundary %f"), boundary);
 		}
 	}
 
@@ -91,14 +134,15 @@ void ACop::Rotate(float RotateDirection,float DeltaTime) {
 		}
 		
 		if ((FMath::Abs(FMath::RoundHalfFromZero(GetActorRotation().Yaw))) == (FMath::Abs(FMath::RoundHalfFromZero(ActorRotation.Yaw))))   
-		{
-			FRotator Normalise = this->GetActorRotation();
-			Normalise.Yaw = FMath::RoundHalfToEven(Normalise.Yaw);
-			this->SetActorRotation(Normalise);
+		{		//FRotator Normalise = this->GetActorRotation();
+				//Normalise.Yaw = -this->GetActorRotation().Yaw;
+				//this->SetActorRotation(Normalise);
 			IsRotating = false;
+			first = true;
 		}
-		UE_LOG(LogTemp, Log, TEXT("get Actor Rotation %f"), GetActorRotation().Yaw);
-		UE_LOG(LogTemp, Log, TEXT("set Actor Rotation %f"), ActorRotation.Yaw);
+		//UE_LOG(LogTemp, Log, TEXT("get Actor Rotation %f"), GetActorRotation().Yaw);
+		//UE_LOG(LogTemp, Log, TEXT("set Actor Rotation %f"), ActorRotation.Yaw);
+		
 		//if ((FMath::RoundHalfToZero(ActorRotation.Yaw) == 0) || FMath::RoundHalfFromZero(ActorRotation.Yaw)>=359)
 		//{
 		//	ActorRotation.Yaw = 0.001f;

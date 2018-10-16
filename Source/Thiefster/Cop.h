@@ -16,20 +16,23 @@ public:
 	ACop();
 	bool Right = true;
 	bool IsRotating = false;
+	bool first = true;
+	float WaitTime;
 	FTimerHandle WaitForTime;
-
+	float boundary;
+	float MinStep;
+	//UStaticMeshComponent* body;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	//UPROPERTY(EditAnywhere)
-	//UStaticMeshComponent *body;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime);
 	UFUNCTION()
 	void Rotate(float RotationDirection,float DeltaTime);
 private:
-	
-	void Patrol(float boundary,float DeltaTime);
+	UFUNCTION()
+	void Patrol(float DeltaTime);
 	
 };
