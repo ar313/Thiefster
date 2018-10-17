@@ -15,13 +15,19 @@ ACop::ACop()
 	body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
 	UObject* Cube = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/Game/Cylinder")); //todo Set Police Mesh Path
 	body->SetStaticMesh(Cast<UStaticMesh>(Cube));
+	
+	
 }
 
 // Called when the game starts or when spawned
 void ACop::BeginPlay()
-{
+{  //todo Spawn Position;
 	Super::BeginPlay();
+	FVector SpawnPos = GetActorLocation();
+	SpawnPos.Z = 90;
+	this->SetActorLocation(SpawnPos);
 	
+
 	boundary = 400.0f;
 	MinStep = 100.0f;
 }
