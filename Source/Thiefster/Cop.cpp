@@ -13,7 +13,7 @@ ACop::ACop()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
-	UObject* Cube = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/Game/Cube")); //todo Set Police Mesh Path
+	UObject* Cube = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/Game/Cylinder")); //todo Set Police Mesh Path
 	body->SetStaticMesh(Cast<UStaticMesh>(Cube));
 }
 
