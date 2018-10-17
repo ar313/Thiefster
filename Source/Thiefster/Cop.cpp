@@ -5,20 +5,23 @@
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h "
+//#include  	"Runtime/Engine/Classes/Engine/StaticMesh.h"
+
 // Sets default values
 ACop::ACop()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+	body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
+	UObject* Cube = StaticLoadObject(UObject::StaticClass(), nullptr, TEXT("/Game/Cube")); //todo Set Police Mesh Path
+	body->SetStaticMesh(Cast<UStaticMesh>(Cube));
 }
 
 // Called when the game starts or when spawned
 void ACop::BeginPlay()
 {
 	Super::BeginPlay();
-	UPROPERTY(EditAnywhere)
-	//body=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
+	
 	boundary = 400.0f;
 	MinStep = 100.0f;
 }
@@ -74,7 +77,7 @@ void ACop::Patrol(float DeltaTime)
 		if (NewLocation.X > boundary)
 		{
 			float oldboundary=boundary;
-			boundary = MinStep+FMath::FRandRange(-500.0f, +300.0f);
+			boundary = MinStep+FMath::FRandRange(-500.0f, +300.0f); //todo MinStep not working
 			if (boundary > oldboundary) 
 			{
 				IsRotating = false;
@@ -100,7 +103,7 @@ void ACop::Patrol(float DeltaTime)
 		if (NewLocation.X < boundary)
 		{
 			float oldboundary = boundary;
-			boundary =MinStep+ FMath::FRandRange(-500.0f, +300.0f);
+			boundary =MinStep+ FMath::FRandRange(-500.0f, +300.0f); //todo MinStep not working
 			if (boundary < oldboundary)
 			{
 				IsRotating = false;

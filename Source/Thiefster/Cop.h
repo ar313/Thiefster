@@ -21,7 +21,9 @@ public:
 	FTimerHandle WaitForTime;
 	float boundary;
 	float MinStep;
-	//UStaticMeshComponent* body;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* body;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
